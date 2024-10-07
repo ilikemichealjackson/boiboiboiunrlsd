@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Album Carousel</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .container {
+            position: relative;
+            width: 300px;
+            height: 450px;
+            perspective: 1000px;
+        }
+        .album-card {
+            width: 100%;
+            height: 110%;
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .album-card:hover {
+            transform: rotateY(30deg) rotateX(25deg); /* Horizontal and Vertical tilt */
+        }
+        .album-cover {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 30px;
+            margin-bottom: 10px;
+        }
+        .album-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-align: center;
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+        .album-title:hover {
+            color: #00FF00; /* Turns green */
+            text-shadow: 0 0 10px rgba(29, 185, 84, 0.8); /* Slight glow */
+        }
+        .artist-name {
+            font-size: 18px;
+            color: #b3b3b3;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .track-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+        .track-list li {
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        .track-list li:hover {
+            color: #1DB954;
+            text-shadow: 0 0 10px rgba(29, 185, 84, 0.8); /* Glowing green on hover */
+        }
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.5);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .prev {
+            left: -60px;
+        }
+        .next {
+            right: -60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="album-card">
+            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-Yw3Yl3xhOVlGHkIQtiV0NLrGglwpZ4.svg" alt="Album cover" class="album-cover">
+            <h2 class="album-title">"4"</h2>
+            <h3 class="artist-name">frevrtrax</h3>
+            <ul class="track-list">
+                <li onclick="playSong('Song 1.wav')">ESEE</li>
+                <li onclick="playSong('Song 2.wav')">RELIFE</li>
+                <li onclick="playSong('Song 3.wav')">VAPORS</li>
+                <li onclick="playSong('Song 4.wav')">SUNBURN</li>
+                <li onclick="playSong('Song 5.wav')">MAKE AWAY</li>
+            </ul>
+        </div>
+        <button class="nav-button prev">&lt;</button>
+        <button class="nav-button next">&gt;</button>
+    </div>
+
+    <audio id="audioPlayer" src="" preload="auto"></audio> <!-- Audio player -->
+
+    <script>
+        const container = document.querySelector('.container');
+        const card = document.querySelector('.album-card');
+        const prevBtn = document.querySelector('.prev');
+        const nextBtn = document.querySelector('.next');
+        const audioPlayer = document.getElementById('audioPlayer');
+
+        const albums = [
+            {
+                title: '"4"',
+                artist: 'frevrtrax',
+                cover: 'https://media.discordapp.net/attachments/1287326670742880257/1291600535899607070/image.png?ex=6704a4bc&is=6703533c&hm=84dc6aafecc5391662c00dd8ef5e27013da4a7fa32b82d32e9635aa9a8799b02&=&format=webp&quality=lossless&width=390&height=368',
+                tracks: ['ESEE', 'RELIFE', 'VAPORS', 'SUNBURN', 'MAKE AWAY / LURN 2 LUV']
+            },
+            {
+                title: 'Placeholder Album 2',
+                artist: 'Artist 2',
+                cover: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-Yw3Yl3xhOVlGHkIQtiV0NLrGglwpZ4.svg',
+                tracks: ['Track 1', 'Track 2', 'Track 3', 'Track 4', 'Track 5']
+            },
+            {
+                title: 'Placeholder Album 3',
+                artist: 'Artist 3',
+                cover: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-Yw3Yl3xhOVlGHkIQtiV0NLrGglwpZ4.svg',
+                tracks: ['Track 1', 'Track 2', 'Track 3', 'Track 4', 'Track 5']
+            }
+        ];
+
+        let currentAlbum = 0;
+
+        function updateAlbum() {
+            const album = albums[currentAlbum];
+            card.innerHTML = `
+                <img src="${album.cover}" alt="${album.title} cover" class="album-cover">
+                <h2 class="album-title">${album.title}</h2>
+                <h3 class="artist-name">${album.artist}</h3>
+                <ul class="track-list">
+                    ${album.tracks.map((track, index) => `<li onclick="playSong('song${index + 1}.wav')">${track}</li>`).join('')}
+                </ul>
+            `;
+        }
+
+        function playSong(song) {
+            audioPlayer.src = song; // Set the audio source
+            audioPlayer.play(); // Play the audio
+        }
+
+        function nextAlbum() {
+            currentAlbum = (currentAlbum + 1) % albums.length;
+            card.style.transform = 'rotateY(-90deg)';
+            setTimeout(() => {
+                updateAlbum();
+                card.style.transform = 'rotateY(0deg)';
+            }, 250);
+        }
+
+        function prevAlbum() {
+            currentAlbum = (currentAlbum - 1 + albums.length) % albums.length;
+            card.style.transform = 'rotateY(90deg)';
+            setTimeout(() => {
+                updateAlbum();
+                card.style.transform = 'rotateY(0deg)';
+            }, 250);
+        }
+
+        nextBtn.addEventListener('click', nextAlbum);
+        prevBtn.addEventListener('click', prevAlbum);
+
+        container.addEventListener('mousemove', (e) => {
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+
+        container.addEventListener('mouseleave', () => {
+            card.style.transform = 'rotateY(0deg) rotateX(0deg)';
+        });
+
+        updateAlbum();
+    </script>
+</body>
+</html>
