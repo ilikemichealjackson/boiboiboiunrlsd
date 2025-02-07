@@ -97,6 +97,70 @@
         .next {
             right: -60px;
         }
+        /* New styles for the progress bar */
+        #progress-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 500px;
+            background-color: #282828;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #progress-container.visible {
+            opacity: 1;
+        }
+        #song-info {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        #song-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        #song-name {
+            font-weight: bold;
+            color: white;
+        }
+        #progress-bar {
+            flex-grow: 1;
+            height: 5px;
+            background-color: #535353;
+            border-radius: 2.5px;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        #progress {
+            height: 100%;
+            background-color: #1DB954;
+            border-radius: 2.5px;
+            width: 0%;
+        }
+        #time-current, #time-total {
+            font-size: 12px;
+            color: #b3b3b3;
+        }
+        #pause-play {
+            background-color: #1db954;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+        }
     </style>
 </head>
 <body>
@@ -117,7 +181,21 @@
         <button class="nav-button next">&gt;</button>
     </div>
 
-    <audio id="audioPlayer" src="" preload="auto"></audio> <!-- Audio player -->
+    <audio id="audioPlayer" src="/placeholder.svg" preload="auto"></audio>
+
+    <!-- New progress bar container -->
+    <div id="progress-container">
+        <div id="song-info">
+            <img id="song-icon" src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-Yw3Yl3xhOVlGHkIQtiV0NLrGglwpZ4.svg" alt="Song Icon">
+            <span id="song-name">Song Name</span>
+        </div>
+        <span id="time-current">0:00</span>
+        <div id="progress-bar">
+            <div id="progress"></div>
+        </div>
+        <span id="time-total">0:00</span>
+        <button id="pause-play">▶</button>
+    </div>
 
     <script>
         const container = document.querySelector('.container');
@@ -125,6 +203,14 @@
         const prevBtn = document.querySelector('.prev');
         const nextBtn = document.querySelector('.next');
         const audioPlayer = document.getElementById('audioPlayer');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progress = document.getElementById('progress');
+        const timeCurrent = document.getElementById('time-current');
+        const timeTotal = document.getElementById('time-total');
+        const pausePlayBtn = document.getElementById('pause-play');
+        const songIcon = document.getElementById('song-icon');
+        const songName = document.getElementById('song-name');
 
         const albums = [
             {
@@ -156,15 +242,51 @@
                 <h2 class="album-title">${album.title}</h2>
                 <h3 class="artist-name">${album.artist}</h3>
                 <ul class="track-list">
-                    ${album.tracks.map((track, index) => `<li onclick="playSong('song${index + 1}.wav')">${track}</li>`).join('')}
+                    ${album.tracks.map((track, index) => `<li onclick="playSong('song${index + 1}.wav', '${track}')">${track}</li>`).join('')}
                 </ul>
             `;
         }
 
-        function playSong(song) {
-            audioPlayer.src = song; // Set the audio source
-            audioPlayer.play(); // Play the audio
+        function playSong(song, trackName) {
+            audioPlayer.src = song;
+            audioPlayer.play();
+            progressContainer.classList.add('visible');
+            songName.textContent = trackName;
+            songIcon.src = albums[currentAlbum].cover;
+            pausePlayBtn.textContent = '❚❚';
         }
+
+        function formatTime(time) {
+            const minutes = Math.floor(time / 60);
+            const seconds = Math.floor(time % 60);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        audioPlayer.addEventListener('timeupdate', () => {
+            const currentTime = audioPlayer.currentTime;
+            const duration = audioPlayer.duration;
+            const progressPercent = (currentTime / duration) * 100;
+            progress.style.width = `${progressPercent}%`;
+            timeCurrent.textContent = formatTime(currentTime);
+            timeTotal.textContent = formatTime(duration);
+        });
+
+        progressBar.addEventListener('click', (e) => {
+            const progressWidth = progressBar.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audioPlayer.duration;
+            audioPlayer.currentTime = (clickX / progressWidth) * duration;
+        });
+
+        pausePlayBtn.addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                pausePlayBtn.textContent = '❚❚';
+            } else {
+                audioPlayer.pause();
+                pausePlayBtn.textContent = '▶';
+            }
+        });
 
         function nextAlbum() {
             currentAlbum = (currentAlbum + 1) % albums.length;
